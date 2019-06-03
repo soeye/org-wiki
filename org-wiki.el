@@ -67,6 +67,12 @@
 
 (defvar org-wiki-location nil)
 
+(defcustom org-wiki-attach-directory "~/org/attach"
+  "org-wiki attach direcotry"
+  :type 'string
+  :group 'org-wiki
+  )
+
 (defcustom org-wiki-default-read-only nil
   "If this variable is true all org-wiki pages will open as read-only by default.
 You can toggle read-only mode with M-x read-only-mode or C-x C-q."
@@ -242,7 +248,7 @@ ELISP> (org-wiki--page->file \"Linux\")
 (defun org-wiki--current-page-asset-dir ()
   "Get current org-wiki page's asset directory"
   (interactive)
-  (concat (file-name-as-directory org-wiki-location)
+  (concat (file-name-as-directory org-wiki-attach-directory)
           (file-name-base (buffer-file-name))))
 
 (defun org-wiki--current-page-asset-file (filename)
@@ -315,7 +321,7 @@ Example: '(\"Linux\" \"BSD\" \"Bash\"  \"Binary_Files\")"
 
 (defun org-wiki--assets-get-dir (pagename)
   "Get path to asset directory of given PAGENAME."
-  (org-wiki--concat-path org-wiki-location pagename))
+  (org-wiki--concat-path org-wiki-attach-directory pagename))
 
 
 (defun org-wiki--assets-make-dir (pagename)
