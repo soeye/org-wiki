@@ -222,11 +222,15 @@ ELISP> (file->org-wiki--page  \"Spanish.org\")
   "Replace a FILENAME extension by an new EXTENSION.
 Example:
 ELISP> (org-wiki/replace-extension \"file.org\" \"html\" )
-       \"file.html\""
-  (concat (car (split-string filename "\\."))
-          "."
-          extension
-          ))
+       \"file.html\"
+2019-06-03: Fix replace not correct when filename contan '.'
+"
+  (let* ((suffix-len (length (file-name-extension filename)))
+	 (temp-name (substring test-name
+			       0
+			       (- (length filename)
+				  suffix-len))))
+    (concat temp-name extension)))
 
 
 (defun org-wiki--page->file (pagename)
