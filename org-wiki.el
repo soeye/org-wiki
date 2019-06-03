@@ -667,7 +667,10 @@ Example:  [[wiki-asset-sys:Linux;LinuxManual.pdf]]"
   (org-wiki--asset-helm-selection
    (lambda (file)
      (insert (format "[[wiki-asset-sys:%s;%s][%s]]"
-                     (file-name-base (org-wiki--current-page-asset-dir))
+		     ;; already used file-name-base in org-wiki--current-page-asset-dir.
+		     ;; if filename contain ".", use file-name-base again will be not correct name,
+		     ;; because file-name-base detected last "." for suffix
+                     (file-name-nondirectory (org-wiki--current-page-asset-dir))
                      (file-name-nondirectory file)
                      (read-string "Description: " (file-name-nondirectory file))
                      )))))
