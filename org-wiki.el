@@ -425,6 +425,24 @@ Example: (org-wiki--assets-open-file-emacs \"Python\" \"example1.py\")
 It will open the file <wiki path>/Python/example1.py related to the page Python.org."
   (find-file  (org-wiki--assets-get-file pagename filename)))
 
+(defun org-wiki--win-path (executable-name drive)
+  "Guess EXECUTABLE-NAME's full path in system32 on DRIVE."
+  (let* ((path (concat drive ":\\\\Windows\\\\System32\\\\" executable-name ".exe")))
+    (if (file-exists-p path) path)))
+
+(defun org-wiki--find-cmd-path ()
+  "Guess path from its EXECUTABLE-NAME on Windows.
+Return nil if it's not found."
+  (cond
+   ((eq system-type 'windows-nt)
+    (or (org-wiki--win-path "cmd" "c")
+        (org-wiki--win-path "cmd" "d")
+        (org-wiki--win-path "cmd" "e")
+        (org-wiki--win-path "cmd" "f")
+        (org-wiki--win-path "cmd" "g")
+        (org-wiki--win-path "cmd" "h")))
+   (t
+    (if (executable-find "cmd") (executable-find "cmd")))))
 
 (defun org-wiki-xdg-open (filename)
   "Open a file FILENAME with default system application.
@@ -464,7 +482,7 @@ Running in Mac OSX invokes open"
                    "proc"
                    nil
                    ;; Command
-                   "cmd"  "/C"  "start" "" (expand-file-name filename))
+                   (org-wiki--find-cmd-path)  "/C"  "start" "" (expand-file-name filename))
 
        ))) ;; End of org-wiki/xdg-open
 
