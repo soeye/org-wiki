@@ -51,6 +51,7 @@
 (require 'cl-lib)     ;; Common-lisp emulation library
 (require 'easymenu)
 (require 'subr-x)     ;; Provides string trim functions.
+(require 'pcre2el)
 
 ;; ****************** U S E R - S E T T I N G S ************************ ;;
 
@@ -218,6 +219,16 @@ ELISP> (file->org-wiki--page  \"Spanish.org\")
    \"Spanish\""
   (file-name-base filename))
 
+(defun org-wiki--file-name->title (&optional filename)
+  "Get a wiki page name from a FILENAME. need rxt-mode
+Example:
+ELISP> (org-wiki--file-name->title  \"2019-01-01T12.12.12 Spanish.org\")
+   \"Spanish\""
+  (replace-regexp-in-string (rxt-pcre-to-elisp "^[0-9]{4}-[0-9]{2}-[0-9]{2}T?[0-9\.]{0,8}\s")
+			    ""
+			    (file-name-base filename)))
+
+
 (defun org-wiki--replace-extension (filename extension)
   "Replace a FILENAME extension by an new EXTENSION.
 Example:
@@ -375,7 +386,7 @@ will be exported to <a href='Linux.html'>Dealing with Linux</a>"
 (defun org-wiki--make-link (pagename)
   "Return a string containing a wiki link [[wiki:PAGENAME][PAGENAME]].
 Example: if PAGENAME is Linux it will return [[wiki:Linux][Linux]]"
-  (format "[[wiki:%s][%s]]" pagename pagename))
+  (format "[[wiki:%s][%s]]" pagename (read-string "Description: " pagename)))
 
 (defun org-wiki--open-page (pagename)
   "Open or create new a org-wiki page (PAGENAME) by name.
@@ -857,14 +868,22 @@ to cancel the download."
   (org-wiki--helm-selection
    (lambda (page) (insert (org-wiki--make-link page)))))
 
-(defun org-wiki-insert-new ()
+(defun org-wiki-insert-new (&optional datestr)
   "Create a new org-wiki and insert a link to it at point."
   (interactive)
-  (let ((page-name (read-string  "Page: ")))
+  (let* ((page-name (read-string  "Page: " datestr))
+	 (desc (read-string "Description: " page-name)))
     (save-excursion (insert (org-make-link-string (concat "wiki:" page-name)
-                                                  page-name
+                                                  desc
                                                   )))))
 
+(defun org-wiki-insert-new-with-date (&optional datestr)
+  "Create a new org-wiki and insert a link to it at point.
+The file name use date YYYY-dd
+"
+  (interactive)
+  (org-wiki-insert-new (format-time-string "%Y-%02m-%02dT%H.%M.%S ")))
+  
 (defun org-wiki-new ()
   "Create a new wiki page and open it without inserting a link."
   (interactive)
@@ -1228,7 +1247,7 @@ Note: This command requires Python3 installed."
         ;; replace '%n' by page title
         ((text1 (replace-regexp-in-string
                  "%n"
-                 (file-name-base (buffer-file-name))
+                 (org-wiki--file-name->title (buffer-file-name))
                  org-wiki-template))
          ;; Replace %d by current date in the format %Y-%m-%d
          (text2 (replace-regexp-in-string
